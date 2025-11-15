@@ -1,3 +1,4 @@
+
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -7,16 +8,17 @@ struct process
 };
 
 vector<process> p;
-int n, tq; //time quantum
+int n, tq;
 
 void Round_Robin()
 {
     vector<int> rt(n), ct(n), tat(n), wt(n), start(n, -1);
     for (int i = 0; i < n; i++)
-        rt[i] = p[i].bt; // remaining time
+        rt[i] = p[i].bt;
 
     queue<int> q;
     vector<bool> inQueue(n, false);
+    vector<tuple<int,int,int>> gantt; // {pid, start, end}
 
     int curr_time = 0, completed = 0;
 
@@ -46,11 +48,12 @@ void Round_Robin()
         int idx = q.front();
         q.pop();
 
-        // Response Time: record first start time
         if (start[idx] == -1)
             start[idx] = curr_time;
 
         int exec_time = min(rt[idx], tq);
+        gantt.push_back({p[idx].pid, curr_time, curr_time + exec_time});
+
         rt[idx] -= exec_time;
         curr_time += exec_time;
 
@@ -76,11 +79,11 @@ void Round_Robin()
 
     vector<int> resp(n);
     for (int i = 0; i < n; i++)
-        resp[i] = start[i] - p[i].at; 
+        resp[i] = start[i] - p[i].at;
 
     double total_tat = 0, total_wt = 0, total_rt = 0;
 
-    cout << "PID\tAT\tBT\tCT\tTAT\tWT\tRT\n";
+    cout << "\nPID\tAT\tBT\tCT\tTAT\tWT\tRT\n";
     for (int i = 0; i < n; i++)
     {
         total_tat += tat[i];
@@ -92,9 +95,21 @@ void Round_Robin()
              << "\t" << resp[i] << "\n";
     }
 
-    cout << "Average TAT: " << total_tat / n << "\n";
+    cout << "\nAverage TAT: " << total_tat / n << "\n";
     cout << "Average WT:  " << total_wt / n << "\n";
     cout << "Average RT:  " << total_rt / n << "\n";
+
+    // Gantt Chart Print
+    cout << "\nGantt Chart:\n";
+    cout << "-------------------------------------------------\n";
+    for (auto &g : gantt)
+        cout << "|  P" << get<0>(g) << "  ";
+    cout << "|\n";
+
+    cout << "0";
+    for (auto &g : gantt)
+        cout << "      " << get<2>(g);
+    cout << "\n-------------------------------------------------\n";
 }
 
 int main()
